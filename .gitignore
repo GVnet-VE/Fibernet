@@ -1,0 +1,100 @@
+# Caché y pruebas
+/.php-cs-fixer.cache
+/.phpunit.result.cache
+/.phpunit.cache
+/phpunit.xml          # Ignora el local si usas phpunit.xml.dist
+/coverage.clover.xml
+/cov/
+
+# Documentación generada
+/docs/
+
+# Configuración sensible
+/include/config.php
+../includes/config.php
+
+# IDE
+.idea/
+
+# phpMyAdmin (si aplica)
+/config.inc.php
+
+# Logs y caché de aplicaciones
+*.log
+/storage/*.cache
+
+# Archivos de entorno y configuración sensible
+.env
+config.php
+*.local.php
+
+# phpMyAdmin (si está incluido en tu proyecto)
+/phpmyadmin/
+/config.inc.php
+
+# Dependencias de Composer (no se versionan)
+/vendor/
+/composer.lock
+
+# Caché y logs
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/views/
+*.log
+
+# Archivos temporales y de IDE
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
+
+# Archivos subidos por usuarios (si aplica)
+/public/uploads/
+/admin/productimages/  # <- Ejemplo basado en tu error anterior
+
+# Entornos de desarrollo (como Homestead)
+/.vagrant
+
+# Archivos de sesión y sistema
+/sessions/
+*.session.php
+
+# Credenciales
+admin/connect.php
+includes/config.php
+phpMyAdmin/config.inc.php
+
+# Archivos de sistema
+/sessions/
+*.log
+
+# Subida de usuarios
+admin/productimages/*
+!admin/productimages/.gitkeep  # Opcional: conservar carpeta vacía
+
+
+# Composer dependencies
+/vendor/
+
+# Environment files
+.env
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Test/temporary Excel files
+*.xlsx

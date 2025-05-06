@@ -1,108 +1,161 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-?>
 
-<?php
-require __DIR__ . '/../vendor/autoload.php'; // Ajusta la ruta según tu estructura
+session_start();
 include('include/config.php');
+include('include/header.php');
+require __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 $message = '';
 
 if (isset($_POST['submit'])) {
-  // Obtener el archivo Excel
-  $file = $_FILES['excel']['tmp_name'];
+    $file = $_FILES['excel']['tmp_name'];
 
-  if (!empty($file)) {
-      // Cargar el archivo Excel
-      try {
-          // Cargar el archivo Excel (.xlsx o .xls)
-          $spreadsheet = IOFactory::load($file);
+    if (!empty($file)) {
+        try {
+            $spreadsheet = IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray();
 
-          $sheet = $spreadsheet->getActiveSheet();
-          $data = $sheet->toArray(); // Obtener los datos del Excel
+            $productosActualizados = 0;
 
-          // Contador para productos actualizados
-          $productosActualizados = 0;
+            for ($i = 1; $i < count($data); $i++) {
+                $codigo = trim($data[$i][0]);
+                $precio = floatval($data[$i][1]);
 
-          // Recorre cada fila del Excel, comenzando desde la segunda (índice 1) para evitar la cabecera
-          for ($i = 1; $i < count($data); $i++) {
-              $codigo = trim($data[$i][0]);  // Columna A: Código
-              $precio = floatval($data[$i][1]); // Columna B: Precio
+                if (!empty($codigo) && $precio > 0) {
+                    $codigo = mysqli_real_escape_string($con, $codigo);
 
-              // Verificar que el código no esté vacío y que el precio sea mayor a 0
-              if (!empty($codigo) && $precio > 0) {
-                  // Escapar el código para prevenir inyecciones SQL
-                  $codigo = mysqli_real_escape_string($con, $codigo);
+                    $checkQuery = "SELECT COUNT(*) FROM products WHERE codigo = '$codigo'";
+                    $result = mysqli_query($con, $checkQuery);
+                    if (!$result) {
+                        echo "Error al verificar el código: " . mysqli_error($con);
+                        continue;
+                    }
 
-                  // Verificar si el código ya existe en la base de datos
-                  $checkQuery = "SELECT COUNT(*) FROM products WHERE codigo = '$codigo'";
-                  $result = mysqli_query($con, $checkQuery);
-                  if (!$result) {
-                      echo "Error al verificar el código: " . mysqli_error($con);
-                      continue;  // Si hay un error en la consulta, continuamos con la siguiente fila
-                  }
+                    $row = mysqli_fetch_row($result);
 
-                  $row = mysqli_fetch_row($result);
-                  
-                  // Si el código existe, actualizamos el precio
-                  if ($row[0] > 0) {
-                      // Consulta para actualizar el precio del producto con el código correspondiente
-                      $updateQuery = "UPDATE products SET productPrice = '$precio', updationDate = NOW() WHERE codigo = '$codigo'";
+                    if ($row[0] > 0) {
+                        $updateQuery = "UPDATE products SET productPrice = '$precio', updationDate = NOW() WHERE codigo = '$codigo'";
+                        if (mysqli_query($con, $updateQuery)) {
+                            $productosActualizados++;
+                        } else {
+                            echo "Error al actualizar el producto con código $codigo: " . mysqli_error($con);
+                        }
+                    }
+                }
+            }
 
-                      // Ejecutar la consulta
-                      if (mysqli_query($con, $updateQuery)) {
-                          $productosActualizados++; // Aumentar contador de productos actualizados
-                      } else {
-                          echo "Error al actualizar el producto con código $codigo: " . mysqli_error($con);
-                      }
-                  } else {
-                      echo "El producto con código $codigo no existe en la base de datos.<br>";
-                  }
-              }
-          }
-
-          // Mensaje de éxito
-          if ($productosActualizados > 0) {
-              echo "<script>alert('$productosActualizados productos actualizados correctamente.');</script>";
-          } else {
-              echo "<script>alert('No se actualizó ningún precio, verifica los códigos.');</script>";
-          }
-
-      } catch (Exception $e) {
-          // Manejo de errores si el archivo no se puede cargar
-          echo "<script>alert('Error al cargar el archivo: " . $e->getMessage() . "');</script>";
-      }
-  } else {
-      // Si no se seleccionó un archivo
-      echo "<script>alert('Por favor, seleccione un archivo.');</script>";
-  }
+            if ($productosActualizados > 0) {
+                $_SESSION['msg'] = "$productosActualizados productos actualizados correctamente.";
+            } else {
+                $_SESSION['msg'] = "No se actualizó ningún precio, verifica los códigos.";
+            }
+        } catch (Exception $e) {
+            $_SESSION['msg'] = 'Error al cargar el archivo: ' . $e->getMessage();
+        }
+    } else {
+        $_SESSION['msg'] = 'Por favor, seleccione un archivo.';
+    }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Actualizar Precios</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashnet | Administración</title>
+    <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link type="text/css" href="css/theme.css" rel="stylesheet">
+    <link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
+    <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
 </head>
+
 <body>
 
-<div class="container">
-  <h2>Actualizar Precios de Productos</h2>
+    <div class="wrapper">
+        <div class="container">
+            <div class="row">
+                <!-- Barra lateral -->
+                <?php include('include/sidebar.php'); ?>
 
-  <form method="post" enctype="multipart/form-data">
-      <div class="form-group">
-          <label for="excel">Seleccionar archivo Excel:</label>
-          <input type="file" class="form-control" id="excel" name="excel" required>
-      </div>
-      <button type="submit" name="submit" class="btn btn-primary">Subir y Actualizar Precios</button>
-  </form>
-</div>
+                <!-- Contenido principal -->
+                <div class="span9">
+                    <div class="content">
+                        <div class="module">
+                            <div class="module-head">
+                                <h3>Actualizar Precios de Productos</h3>
+                            </div>
+                            <div class="module-body">
+
+                                <!-- Mostrar mensaje de éxito o error -->
+                                <?php if (isset($_SESSION['msg'])) { ?>
+                                    <div class="alert alert-info">
+                                        <button type="button" class="close" data-dismiss="alert">×</button>
+                                        <strong>Notificación:</strong> <?php echo $_SESSION['msg'];
+                                                                        unset($_SESSION['msg']); ?>
+                                    </div>
+                                <?php } ?>
+
+                                <form method="post" enctype="multipart/form-data" class="form-horizontal row-fluid">
+                                    <div class="control-group">
+                                        <strong>Importante:</strong> El archivo Excel debe tener <b>dos columnas</b>:
+                                        <ul class="mb-2">
+                                            <li><strong>codigo</strong>: Código del producto</li>
+                                            <li><strong>precio</strong>: Nuevo precio del producto</li>
+                                        </ul>
+                                        Asegúrate de que las columnas tengan estos nombres en la primera fila.<br>
+                                        <small>Ejemplo de contenido:</small>
+                                        <div class="table-responsive mt-2">
+                                            <table class="table table-bordered table-sm mb-0">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>codigo</th>
+                                                        <th>precio</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>PROD001</td>
+                                                        <td>1500.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>PROD002</td>
+                                                        <td>2450.50</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <br>
+                                            <label class="control-label" for="excel">Seleccionar archivo Excel:</label>
+                                            <div class="controls">
+                                                <input type="file" class="span8" id="excel" name="excel" required>
+                                            </div>
+
+                                            <button type="submit" name="submit" class="btn btn-">Actualizar Precios</button>
+
+                                        </div>
+                                </form>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div><!--/.span9-->
+            </div><!--/.row-->
+        </div><!--/.container-->
+    </div><!--/.wrapper-->
+
+    <?php include('include/footer.php'); ?>
+
+    <script src="scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+    <script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 
 </body>
+
 </html>

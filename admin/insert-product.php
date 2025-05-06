@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 include('include/config.php');
 if(strlen($_SESSION['alogin'])==0)
@@ -21,24 +25,25 @@ if(isset($_POST['submit']))
 	$productimage1=$_FILES["productimage1"]["name"];
 	$productimage2=$_FILES["productimage2"]["name"];
 	$productimage3=$_FILES["productimage3"]["name"];
+	$codigo=$_POST['codigo']; // Nuevo campo agregado
+
 //for getting product id
 $query=mysqli_query($con,"select max(id) as pid from products");
-	$result=mysqli_fetch_array($query);
-	 $productid=$result['pid']+1;
-	$dir="productimages/$productid";
+$result=mysqli_fetch_array($query);
+$productid=$result['pid']+1;
+$dir="productimages/$productid";
 if(!is_dir($dir)){
-		mkdir("productimages/".$productid);
-	}
+	mkdir("productimages/".$productid);
+}
 
 	move_uploaded_file($_FILES["productimage1"]["tmp_name"],"productimages/$productid/".$_FILES["productimage1"]["name"]);
 	move_uploaded_file($_FILES["productimage2"]["tmp_name"],"productimages/$productid/".$_FILES["productimage2"]["name"]);
 	move_uploaded_file($_FILES["productimage3"]["tmp_name"],"productimages/$productid/".$_FILES["productimage3"]["name"]);
-$sql=mysqli_query($con,"insert into products(category,subCategory,productName,productCompany,productPrice,productDescription,shippingCharge,productAvailability,productImage1,productImage2,productImage3,productPriceBeforeDiscount) values('$category','$subcat','$productname','$productcompany','$productprice','$productdescription','$productscharge','$productavailability','$productimage1','$productimage2','$productimage3','$productpricebd')");
+
+$sql=mysqli_query($con,"insert into products(codigo, category, subCategory, productName, productCompany, productPrice, productDescription, shippingCharge, productAvailability, productImage1, productImage2, productImage3, productPriceBeforeDiscount) values('$codigo','$category','$subcat','$productname','$productcompany','$productprice','$productdescription','$productscharge','$productavailability','$productimage1','$productimage2','$productimage3','$productpricebd')");
 $_SESSION['msg']="Product Inserted Successfully !!";
 
 }
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,64 +56,59 @@ $_SESSION['msg']="Product Inserted Successfully !!";
 	<link type="text/css" href="css/theme.css" rel="stylesheet">
 	<link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
 	<link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
-<script src="http://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
-<script type="text/javascript">bkLib.onDomLoaded(nicEditors.allTextAreas);</script>
+	<script src="http://js.nicedit.com/nicEdit-latest.js" type="text/javascript"></script>
+	<script type="text/javascript">bkLib.onDomLoaded(nicEditors.allTextAreas);</script>
 
-   <script>
-function getSubcat(val) {
-	$.ajax({
-	type: "POST",
-	url: "get_subcat.php",
-	data:'cat_id='+val,
-	success: function(data){
-		$("#subcategory").html(data);
+	<script>
+	function getSubcat(val) {
+		$.ajax({
+		type: "POST",
+		url: "get_subcat.php",
+		data:'cat_id='+val,
+		success: function(data){
+			$("#subcategory").html(data);
+		}
+		});
 	}
-	});
-}
-function selectCountry(val) {
-$("#search-box").val(val);
-$("#suggesstion-box").hide();
-}
-</script>	
-
-
+	function selectCountry(val) {
+		$("#search-box").val(val);
+		$("#suggesstion-box").hide();
+	}
+	</script>	
 </head>
 <body>
 <?php include('include/header.php');?>
 
-	<div class="wrapper">
-		<div class="container">
-			<div class="row">
-<?php include('include/sidebar.php');?>				
+<div class="wrapper">
+	<div class="container">
+		<div class="row">
+			<?php include('include/sidebar.php');?>				
 			<div class="span9">
-					<div class="content">
+				<div class="content">
 
-						<div class="module">
-							<div class="module-head">
-								<h3>Insertar Producto</h3>
-							</div>
-							<div class="module-body">
+					<div class="module">
+						<div class="module-head">
+							<h3>Insertar Producto</h3>
+						</div>
+						<div class="module-body">
 
-									<?php if(isset($_POST['submit']))
-{?>
-									<div class="alert alert-success">
-										<button type="button" class="close" data-dismiss="alert">×</button>
-									<strong>Bien hecho!</strong>	<?php echo htmlentities($_SESSION['msg']);?><?php echo htmlentities($_SESSION['msg']="");?>
-									</div>
+<?php if(isset($_POST['submit'])) { ?>
+<div class="alert alert-success">
+	<button type="button" class="close" data-dismiss="alert">×</button>
+	<strong>Bien hecho!</strong> <?php echo htmlentities($_SESSION['msg']);?><?php echo htmlentities($_SESSION['msg']="");?>
+</div>
 <?php } ?>
 
-
-									<?php if(isset($_GET['del']))
-{?>
-									<div class="alert alert-error">
-										<button type="button" class="close" data-dismiss="alert">×</button>
-									<strong>Vaya!</strong> 	<?php echo htmlentities($_SESSION['delmsg']);?><?php echo htmlentities($_SESSION['delmsg']="");?>
-									</div>
+<?php if(isset($_GET['del'])) { ?>
+<div class="alert alert-error">
+	<button type="button" class="close" data-dismiss="alert">×</button>
+	<strong>Vaya!</strong> <?php echo htmlentities($_SESSION['delmsg']);?><?php echo htmlentities($_SESSION['delmsg']="");?>
+</div>
 <?php } ?>
 
-									<br />
+<br />
 
-			<form class="form-horizontal row-fluid" name="insertproduct" method="post" enctype="multipart/form-data">
+<form class="form-horizontal row-fluid" name="insertproduct" method="post" enctype="multipart/form-data">
 
 <div class="control-group">
 <label class="control-label" for="basicinput">Categoría</label>
@@ -116,71 +116,74 @@ $("#suggesstion-box").hide();
 <select name="category" class="span8 tip" onChange="getSubcat(this.value);"  required>
 <option value="">Seleccione Categoría</option> 
 <?php $query=mysqli_query($con,"select * from category");
-while($row=mysqli_fetch_array($query))
-{?>
-
+while($row=mysqli_fetch_array($query)) { ?>
 <option value="<?php echo $row['id'];?>"><?php echo $row['categoryName'];?></option>
 <?php } ?>
 </select>
 </div>
 </div>
 
-									
 <div class="control-group">
 <label class="control-label" for="basicinput">Sub Categoría</label>
 <div class="controls">
-<select   name="subcategory"  id="subcategory" class="span8 tip" required>
-</select>
+<select name="subcategory" id="subcategory" class="span8 tip" required></select>
 </div>
 </div>
 
-
+<!-- Nuevo campo para el código -->
 <div class="control-group">
-<label class="control-label" for="basicinput">Nombr del Producto</label>
+<label class="control-label" for="basicinput">Código del Producto</label>
 <div class="controls">
-<input type="text"    name="productName"  placeholder="Ingrese Nombre del Producto" class="span8 tip" required>
-</div>
-</div>
-
-<div class="control-group">
-<label class="control-label" for="basicinput">Compañia del Producto</label>
-<div class="controls">
-<input type="text"    name="productCompany"  placeholder="Ingrese Nombre de la Compañia" class="span8 tip" required>
-</div>
-</div>
-<div class="control-group">
-<label class="control-label" for="basicinput">Precio del producto sin Descuento</label>
-<div class="controls">
-<input type="text"    name="productpricebd"  placeholder="Ingrese Precio del Producto" class="span8 tip" required>
+<input type="text" name="codigo" placeholder="Ingrese el Código del Producto" class="span8 tip" required>
 </div>
 </div>
 
 <div class="control-group">
-<label class="control-label" for="basicinput">Precio del Producto con Descuento (PVP)</label>
+<label class="control-label" for="basicinput">Nombre del Producto</label>
 <div class="controls">
-<input type="text"    name="productprice"  placeholder="Ingrese Precio del Producto" class="span8 tip" required>
+<input type="text" name="productName" placeholder="Ingrese Nombre del Producto" class="span8 tip" required>
 </div>
 </div>
 
 <div class="control-group">
-<label class="control-label" for="basicinput">Descripción del Producto</label>
+<label class="control-label" for="basicinput">Compañía del Producto</label>
 <div class="controls">
-<textarea  name="productDescription"  placeholder="Ingrese la Descripción del Producto" rows="6" class="span8 tip">
-</textarea>  
+<input type="text" name="productCompany" placeholder="Ingrese Nombre de la Compañía" class="span8 tip" required>
 </div>
 </div>
 
 <div class="control-group">
-<label class="control-label" for="basicinput">Cargo de Envio del Producto</label>
+<label class="control-label" for="basicinput">Precio sin Descuento</label>
 <div class="controls">
-<input type="text"    name="productShippingcharge"  placeholder="Ingrese Precio de Envio del Producto" class="span8 tip" required>
+<input type="text" name="productpricebd" placeholder="Ingrese Precio del Producto" class="span8 tip" required>
 </div>
 </div>
 
 <div class="control-group">
-<label class="control-label" for="basicinput">Disponibilidad del Producto</label>
+<label class="control-label" for="basicinput">Precio con Descuento</label>
 <div class="controls">
-<select   name="productAvailability"  id="productAvailability" class="span8 tip" required>
+<input type="text" name="productprice" placeholder="Ingrese Precio del Producto" class="span8 tip" required>
+</div>
+</div>
+
+<div class="control-group">
+<label class="control-label" for="basicinput">Descripción</label>
+<div class="controls">
+<textarea name="productDescription" placeholder="Ingrese la Descripción del Producto" rows="6" class="span8 tip"></textarea>  
+</div>
+</div>
+
+<div class="control-group">
+<label class="control-label" for="basicinput">Cargo de Envío</label>
+<div class="controls">
+<input type="text" name="productShippingcharge" placeholder="Ingrese Precio de Envío" class="span8 tip" required>
+</div>
+</div>
+
+<div class="control-group">
+<label class="control-label" for="basicinput">Disponibilidad</label>
+<div class="controls">
+<select name="productAvailability" id="productAvailability" class="span8 tip" required>
 <option value="">Seleccione</option>
 <option value="En existencia">En existencia</option>
 <option value="Fuera de Existencia">Fuera de Existencia</option>
@@ -188,66 +191,57 @@ while($row=mysqli_fetch_array($query))
 </div>
 </div>
 
-
-
 <div class="control-group">
 <label class="control-label" for="basicinput">Imagen 1</label>
 <div class="controls">
-<input type="file" name="productimage1" id="productimage1" value="" class="span8 tip" required>
+<input type="file" name="productimage1" class="span8 tip" required>
 </div>
 </div>
-
 
 <div class="control-group">
 <label class="control-label" for="basicinput">Imagen 2</label>
 <div class="controls">
-<input type="file" name="productimage2"  class="span8 tip" required>
+<input type="file" name="productimage2" class="span8 tip" required>
 </div>
 </div>
-
-
 
 <div class="control-group">
 <label class="control-label" for="basicinput">Imagen 3</label>
 <div class="controls">
-<input type="file" name="productimage3"  class="span8 tip">
+<input type="file" name="productimage3" class="span8 tip">
 </div>
 </div>
 
-	<div class="control-group">
-											<div class="controls">
-												<button type="submit" name="submit" class="btn">Insertar</button>
-											</div>
-										</div>
-									</form>
-							</div>
-						</div>
+<div class="control-group">
+	<div class="controls">
+		<button type="submit" name="submit" class="btn">Insertar</button>
+	</div>
+</div>
 
-
-	
-						
-						
-					</div><!--/.content-->
-				</div><!--/.span9-->
-			</div>
-		</div><!--/.container-->
-	</div><!--/.wrapper-->
+</form>
+</div>
+</div>
+</div><!--/.content-->
+</div><!--/.span9-->
+</div>
+</div><!--/.container-->
+</div><!--/.wrapper-->
 
 <?php include('include/footer.php');?>
 
-	<script src="scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
-	<script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
-	<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
-	<script src="scripts/flot/jquery.flot.js" type="text/javascript"></script>
-	<script src="scripts/datatables/jquery.dataTables.js"></script>
-	<script>
-		$(document).ready(function() {
-			$('.datatable-1').dataTable();
-			$('.dataTables_paginate').addClass("btn-group datatable-pagination");
-			$('.dataTables_paginate > a').wrapInner('<span />');
-			$('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
-			$('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
-		} );
-	</script>
+<script src="scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="scripts/flot/jquery.flot.js" type="text/javascript"></script>
+<script src="scripts/datatables/jquery.dataTables.js"></script>
+<script>
+	$(document).ready(function() {
+		$('.datatable-1').dataTable();
+		$('.dataTables_paginate').addClass("btn-group datatable-pagination");
+		$('.dataTables_paginate > a').wrapInner('<span />');
+		$('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
+		$('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
+	});
+</script>
 </body>
 <?php } ?>

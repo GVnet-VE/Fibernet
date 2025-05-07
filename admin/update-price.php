@@ -1,8 +1,6 @@
 <?php
-
 session_start();
 include('include/config.php');
-include('include/header.php');
 require __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -19,6 +17,7 @@ if (isset($_POST['submit'])) {
             $data = $sheet->toArray();
 
             $productosActualizados = 0;
+            $codigosNoEncontrados = [];
 
             for ($i = 1; $i < count($data); $i++) {
                 $codigo = trim($data[$i][0]);
@@ -43,15 +42,26 @@ if (isset($_POST['submit'])) {
                         } else {
                             echo "Error al actualizar el producto con código $codigo: " . mysqli_error($con);
                         }
+                    } else {
+                        $codigosNoEncontrados[] = $codigo;
                     }
                 }
             }
 
+            $msg = '';
             if ($productosActualizados > 0) {
-                $_SESSION['msg'] = "$productosActualizados productos actualizados correctamente.";
+                $msg .= "$productosActualizados productos actualizados correctamente. ";
             } else {
-                $_SESSION['msg'] = "No se actualizó ningún precio, verifica los códigos.";
+                $msg .= "No se actualizó ningún precio, verifica los códigos.";
             }
+            
+            if (!empty($codigosNoEncontrados)) {
+                $msg .= "Códigos no encontrados en la base de datos: ";
+                $msg .= implode(', ', $codigosNoEncontrados);
+            }
+
+            $_SESSION['msg'] = $msg;
+
         } catch (Exception $e) {
             $_SESSION['msg'] = 'Error al cargar el archivo: ' . $e->getMessage();
         }
@@ -67,23 +77,23 @@ if (isset($_POST['submit'])) {
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cashnet | Administración</title>
+    <title>CashNet | Administración</title>
     <link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
     <link type="text/css" href="css/theme.css" rel="stylesheet">
     <link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
     <link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
+
 </head>
 
 <body>
+    <?php include('include/header.php'); ?>
 
     <div class="wrapper">
         <div class="container">
             <div class="row">
-                <!-- Barra lateral -->
                 <?php include('include/sidebar.php'); ?>
 
-                <!-- Contenido principal -->
                 <div class="span9">
                     <div class="content">
                         <div class="module">
@@ -92,59 +102,60 @@ if (isset($_POST['submit'])) {
                             </div>
                             <div class="module-body">
 
-                                <!-- Mostrar mensaje de éxito o error -->
                                 <?php if (isset($_SESSION['msg'])) { ?>
                                     <div class="alert alert-info">
                                         <button type="button" class="close" data-dismiss="alert">×</button>
-                                        <strong>Notificación:</strong> <?php echo $_SESSION['msg'];
-                                                                        unset($_SESSION['msg']); ?>
+                                        <strong>Notificación:</strong> <?php echo htmlentities($_SESSION['msg']); ?>
+                                        <?php unset($_SESSION['msg']); ?>
                                     </div>
                                 <?php } ?>
 
-                                <form method="post" enctype="multipart/form-data" class="form-horizontal row-fluid">
+                                <div class="alert alert-info">
+                                    <strong>Importante:</strong> El archivo Excel debe tener <b>dos columnas</b>: <code>codigo</code> y <code>precio</code>. Asegúrate de que las columnas tengan estos nombres en la primera fila.
+                                </div>
+
+                                <div class="mb-3">
+                                    <h5>Ejemplo de contenido:</h5>
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>codigo</th>
+                                                <th>precio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>PROD001</td>
+                                                <td>1500.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td>PROD002</td>
+                                                <td>2450.50</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <form method="post" enctype="multipart/form-data" class="form-horizontal">
                                     <div class="control-group">
-                                        <strong>Importante:</strong> El archivo Excel debe tener <b>dos columnas</b>:
-                                        <ul class="mb-2">
-                                            <li><strong>codigo</strong>: Código del producto</li>
-                                            <li><strong>precio</strong>: Nuevo precio del producto</li>
-                                        </ul>
-                                        Asegúrate de que las columnas tengan estos nombres en la primera fila.<br>
-                                        <small>Ejemplo de contenido:</small>
-                                        <div class="table-responsive mt-2">
-                                            <table class="table table-bordered table-sm mb-0">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th>codigo</th>
-                                                        <th>precio</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>PROD001</td>
-                                                        <td>1500.00</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>PROD002</td>
-                                                        <td>2450.50</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                            <br>
-                                            <label class="control-label" for="excel">Seleccionar archivo Excel:</label>
-                                            <div class="controls">
-                                                <input type="file" class="span8" id="excel" name="excel" required>
-                                            </div>
-
-                                            <button type="submit" name="submit" class="btn btn-">Actualizar Precios</button>
-
+                                        <label class="control-label" for="excel">Seleccionar archivo Excel:</label>
+                                        <div class="controls">
+                                            <input type="file" class="span8" id="excel" name="excel" required>
                                         </div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <button type="submit" name="submit" class="btn">
+                                                <i class="icon-upload"></i> Actualizar Precios
+                                            </button>
+                                        </div>
+                                    </div>
                                 </form>
-
-
 
                             </div>
                         </div>
-                    </div>
+                    </div><!--/.content-->
                 </div><!--/.span9-->
             </div><!--/.row-->
         </div><!--/.container-->

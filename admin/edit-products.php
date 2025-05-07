@@ -6,6 +6,7 @@ if (strlen($_SESSION['alogin']) == 0) {
 } else {
 	$pid = intval($_GET['id']); // product id
 	if (isset($_POST['submit'])) {
+    $codigo = $_POST['codigo'];
 		$category = $_POST['category'];
 		$subcat = $_POST['subcategory'];
 		$productname = $_POST['productName'];
@@ -73,7 +74,7 @@ if (strlen($_SESSION['alogin']) == 0) {
 							<div class="module">
 								<div class="module-head">
 									<h3>Actualizar Producto</h3>
-									<button class="btn"><a href="manage-products.php">Regresar</button>
+									<a href="manage-products.php" class="btn">Regresar</a>
 								</div>
 								<div class="module-body">
 
@@ -137,6 +138,12 @@ if (strlen($_SESSION['alogin']) == 0) {
 												</div>
 											</div>
 
+                      <div class="control-group">
+												<label class="control-label" for="basicinput">Codigo del Producto</label>
+												<div class="controls">
+													<input type="text" name="productName" placeholder="Ingrese en Codigo del Producto" value="<?php echo htmlentities($row['codigo']); ?>" class="span8 tip">
+												</div>
+											</div>
 
 											<div class="control-group">
 												<label class="control-label" for="basicinput">Nombre del Producto</label>
@@ -230,7 +237,7 @@ if (strlen($_SESSION['alogin']) == 0) {
 
 
 
-
+					
 
 						</div><!--/.content-->
 					</div><!--/.span9-->

@@ -156,7 +156,7 @@ if (isset($_POST['submit'])) {
 										<div class="products">
 											<div class="hot-deal-wrapper">
 												<div class="image">
-													<img src="admin/productimages/<?php echo htmlentities($rws['productImage1']); ?>" width="350" height="400" alt="">
+													<img src="admin/productimages/<?php echo htmlentities($rws['productImage1']); ?>" width="300" height="300" alt="">
 												</div>
 
 											</div><!-- /.hot-deal-wrapper -->
@@ -222,7 +222,7 @@ if (isset($_POST['submit'])) {
 
 										<div class="single-product-gallery-item" id="slide1">
 											<a data-lightbox="image-1" data-title="<?php echo htmlentities($row['productName']); ?>" href="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>">
-												<img class="img-responsive" alt="" src="assets/images/blank.gif" data-echo="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>" width="200" height="400" />
+												<img class="img-responsive" alt="" src="assets/images/blank.gif" data-echo="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>" width="250" height="250" />
 											</a>
 										</div>
 
@@ -231,7 +231,7 @@ if (isset($_POST['submit'])) {
 
 										<div class="single-product-gallery-item" id="slide1">
 											<a data-lightbox="image-1" data-title="<?php echo htmlentities($row['productName']); ?>" href="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>">
-												<img class="img-responsive" alt="" src="assets/images/blank.gif" data-echo="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>" width="370" height="350" />
+												<img class="img-responsive" alt="" src="assets/images/blank.gif" data-echo="admin/productimages/<?php echo htmlentities($row['productImage1']); ?>" width="250" height="250" />
 											</a>
 										</div><!-- /.single-product-gallery-item -->
 
